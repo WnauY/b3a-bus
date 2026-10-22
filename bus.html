@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#183e36">
+  <title>B3A 到站 · 富泰邨 → 深圳湾口岸</title>
+  <meta name="description" content="富泰邨往深圳灣口岸，城巴 B3A 即時到站預測，每 30 秒自動更新。">
+  <style>
+    :root { color-scheme:light; --ink:#183E36; --muted:#58665D; --paper:#F7F8F4; --line:#E1E7DD; --green:#E7F2DC; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100svh; color:var(--ink); background:var(--paper); font-family:Inter,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; -webkit-font-smoothing:antialiased; }
+    main { width:100%; max-width:720px; margin:0 auto; padding:32px 24px 24px; }
+    .top { display:flex; align-items:center; justify-content:space-between; gap:16px; padding-bottom:20px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:10px; }
+    .brand-mark { display:grid; place-items:center; width:36px; height:36px; border-radius:11px; background:var(--ink); color:#E3F3D1; flex:none; }
+    .brand-mark svg { width:22px; height:22px; }
+    .brand-name { font-size:17px; font-weight:700; }
+    .brand-name small { display:block; margin-top:3px; font-size:12px; font-weight:400; color:var(--muted); }
+    .clock-wrap { text-align:right; flex:none; }
+    .clock { font-size:16px; font-weight:600; font-variant-numeric:tabular-nums; }
+    .clock-wrap small { display:block; margin-top:3px; color:var(--muted); font-size:12px; }
+    .journey { padding:24px 0 22px; }
+    .route-line { display:flex; align-items:center; gap:12px; }
+    .route { display:inline-flex; align-items:center; justify-content:center; background:var(--green); color:var(--ink); border:1px solid #D8E7CA; border-radius:10px; padding:8px 12px; font-size:20px; line-height:1; font-weight:750; flex:none; }
+    h1 { font-size:22px; font-weight:650; line-height:1.5; letter-spacing:-.035em; margin:0; }
+    h1 span { color:#697B60; margin:0 3px; font-weight:400; }
+    .english { margin:10px 0 0; font-size:12px; line-height:1.6; color:var(--muted); overflow-wrap:anywhere; }
+    .panel { background:#FFF; border:1px solid var(--line); border-radius:22px; padding:24px; box-shadow:0 6px 24px #183e3604; }
+    .panel-top { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:18px; }
+    .panel-label { font-size:14px; font-weight:650; }
+    .status { display:inline-flex; align-items:center; gap:6px; font-size:12px; line-height:1.5; color:#3F663A; background:#EEF5E7; border:1px solid #E0EAD5; border-radius:20px; padding:4px 9px; }
+    .status::before { content:""; width:5px; height:5px; border-radius:50%; background:currentColor; flex:none; }
+    .status.warn { color:#855412; background:#FFF6E6; border-color:#EEDDBC; }
+    #arrivals { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .next { grid-column:1/-1; min-width:0; padding:4px 0 18px; }
+    .next-label { color:var(--muted); font-size:12px; line-height:1.6; }
+    .eta { display:flex; align-items:baseline; gap:12px; padding:10px 0; }
+    .number { font-size:112px; font-weight:550; line-height:1; letter-spacing:-.075em; color:var(--ink); font-variant-numeric:tabular-nums; }
+    .unit { font-size:16px; color:var(--muted); }
+    .details { font-size:12px; color:var(--muted); line-height:1.8; margin:4px 0 0; overflow-wrap:anywhere; }
+    .later { min-width:0; padding:16px; border:1px solid #E2E9DC; border-radius:15px; background:#F3F7EE; }
+    .later-label { font-size:12px; line-height:1.5; color:#4F6247; overflow-wrap:anywhere; }
+    .later-time { display:block; margin-top:5px; font-size:12px; color:var(--muted); line-height:1.7; overflow-wrap:anywhere; }
+    .later-eta { margin-top:12px; font-size:34px; font-weight:550; line-height:1.1; letter-spacing:-.04em; font-variant-numeric:tabular-nums; }
+    .later-eta small { font-size:12px; font-weight:400; letter-spacing:0; color:var(--muted); margin-left:2px; }
+    .message { min-height:250px; display:flex; flex-direction:column; justify-content:center; padding:24px 0; }
+    .message strong { font-size:22px; line-height:1.5; font-weight:650; margin-bottom:12px; overflow-wrap:anywhere; }
+    .message p { font-size:13px; line-height:1.9; color:var(--muted); margin:0; overflow-wrap:anywhere; }
+    .refresh { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:20px; padding-top:18px; border-top:1px solid var(--line); }
+    .refresh-info { min-width:0; }
+    .updated,.countdown { display:block; font-size:12px; color:var(--muted); line-height:1.6; overflow-wrap:anywhere; }
+    .countdown { margin-top:3px; }
+    .refresh-button { display:inline-flex; align-items:center; justify-content:center; gap:6px; flex:none; min-height:44px; padding:10px 14px; border:1px solid #D6E1CD; border-radius:11px; background:#FFF; color:var(--ink); font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+    .refresh-button svg { width:15px; height:15px; }
+    .refresh-button:hover { background:#F0F6E9; border-color:#B8CDA7; }
+    .refresh-button:disabled { opacity:.6; cursor:wait; }
+    .refresh-track { height:2px; border-radius:2px; background:#EDF1E8; overflow:hidden; margin-top:16px; }
+    .refresh-progress { height:100%; width:0; background:#89AA70; }
+    button:focus-visible,a:focus-visible { outline:3px solid #789F5F; outline-offset:4px; }
+    footer { padding:18px 2px 0; font-size:12px; color:var(--muted); line-height:1.9; }
+    footer p { margin:0 0 6px; }
+    footer a { color:#3F5F35; text-underline-offset:3px; }
+    .sr-only { position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%); }
+    [hidden] { display:none !important; }
+    @media(max-width:600px) {
+      main { padding:18px 16px 20px; }
+      .top { padding-bottom:16px; }
+      .journey { padding:20px 0; }
+      .route-line { gap:10px; }
+      .route { font-size:18px; padding:8px 10px; }
+      h1 { font-size:20px; }
+      .panel { padding:20px; border-radius:20px; }
+      .panel-top { margin-bottom:14px; }
+      .number { font-size:96px; }
+      .unit { font-size:14px; }
+      .next { padding-bottom:14px; }
+      .later { padding:14px; }
+    }
+    @media(max-width:350px) {
+      h1 { font-size:18px; }
+      h1 span { margin:0; }
+      .route-line { gap:8px; }
+      .panel { padding:16px; }
+      .later { padding:12px; }
+      .later-eta { font-size:30px; }
+      .refresh-button { padding:10px; }
+    }
+    @media(prefers-reduced-motion:no-preference) {
+      .refresh-button { transition:background .15s,border-color .15s; }
+      .refresh-progress { transition:width 1s linear; }
+      .refresh-button:disabled svg { animation:spin 1s linear infinite; }
+      @keyframes spin { to { transform:rotate(360deg); } }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div class="brand"><span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="3" width="14" height="16" rx="3"/><path d="M5 11h14M8 19v2m8-2v2M8 6h8"/><circle cx="8.5" cy="15.5" r=".8"/><circle cx="15.5" cy="15.5" r=".8"/></svg></span><div class="brand-name">到站<small>城巴实时到站</small></div></div>
+    <div class="clock-wrap"><time class="clock" id="clock"></time><small>香港时间 · HKT</small></div>
+  </header>
+  <section class="journey" aria-label="路线与站点">
+    <div class="route-line"><span class="route">B3A</span><h1>富泰邨 <span aria-label="前往">→</span> 深圳湾口岸</h1></div>
+    <p class="english" lang="en">Fu Tai Estate → Shenzhen Bay Port</p>
+  </section>
+  <section class="panel" aria-label="接下来到站的巴士" aria-busy="true" id="panel">
+    <div class="panel-top"><span class="panel-label">即将到站</span><span class="status" id="status">连接中</span></div>
+    <div id="arrivals"></div>
+    <div class="message" id="message"><strong>正在查看下一班车…</strong><p>正在获取城巴的最新到站预测。</p></div>
+    <div class="refresh"><div class="refresh-info"><span class="updated" id="updated">等待实时数据</span><span class="countdown" id="countdown">每 30 秒自动刷新</span></div><button class="refresh-button" id="refresh" type="button" aria-label="刷新到站时间"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M16 8a6.2 6.2 0 1 0 .2 4M16 3v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg>刷新</button></div>
+    <div class="refresh-track" aria-hidden="true"><div class="refresh-progress" id="refresh-progress"></div></div>
+  </section>
+  <footer><p>城巴开放数据 · <a href="https://data.gov.hk/en-data/dataset/ctb-eta-transport-realtime-eta" target="_blank" rel="noopener noreferrer">DATA.GOV.HK ↗</a></p><p>青山公路富泰邨站 · 003261<br>显示到达本站的预测时间，并非前往口岸的行车时间。<br>每 30 秒查询一次；城巴预测约每分钟更新。</p></footer>
+  <p id="announcement" role="status" aria-live="polite" class="sr-only"></p>
+  <noscript><p>请启用 JavaScript 以显示实时到站预测。</p></noscript>
+</main>
+<script>
+(() => {
+  'use strict';
+  const ENDPOINT = 'https://rt.data.gov.hk/v2/transport/citybus/eta/CTB/003261/B3A';
+  const REFRESH_MS = 30_000;
+  const $ = id => document.getElementById(id);
+  const timeFormat = new Intl.DateTimeFormat('en-GB', { timeZone:'Asia/Hong_Kong', hour:'2-digit', minute:'2-digit', hour12:false });
+  const clockFormat = new Intl.DateTimeFormat('en-GB', { timeZone:'Asia/Hong_Kong', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  let rows = [], receivedAt = 0, sourceAt = 0, nextRefresh = 0, busy = false, failed = false, hasData = false;
+  function minutes(eta, now) { return Math.max(0, Math.ceil((Date.parse(eta) - now) / 60_000)); }
+  function showMessage(title, description) {
+    $('message').hidden = false;
+    $('message').replaceChildren();
+    const heading = document.createElement('strong'); heading.textContent = title;
+    const text = document.createElement('p'); text.textContent = description;
+    $('message').append(heading, text);
+  }
+  function element(tag, className, text) {
+    const node = document.createElement(tag); node.className = className; node.textContent = text; return node;
+  }
+  function render() {
+    const now = Date.now();
+    $('clock').textContent = clockFormat.format(now);
+    $('clock').dateTime = new Date(now).toISOString();
+    $('countdown').textContent = busy ? '正在获取最新预测…' : Math.max(0, Math.ceil((nextRefresh-now)/1000)) + ' 秒后自动刷新';
+    $('refresh-progress').style.width = busy ? '100%' : Math.max(0,Math.min(100,100*(1-(nextRefresh-now)/REFRESH_MS))) + '%';
+    if (!hasData) return;
+    const age = now - sourceAt;
+    const stale = failed || age > 120_000;
+    $('status').textContent = stale ? (failed ? '网络连接异常' : '数据更新延迟') : '实时到站预测';
+    $('status').classList.toggle('warn', stale);
+    $('updated').textContent = '更新于 ' + timeFormat.format(receivedAt) + (stale ? ' · 预测可能已过期' : ' · 自动更新中');
+    $('arrivals').replaceChildren();
+    if (age > 300_000) {
+      showMessage('等待最新到站预测', '城巴数据已超过 5 分钟未更新，正在自动重试。'); return;
+    }
+    const upcoming = rows.filter(row => Date.parse(row.eta) >= now - 20_000).slice(0,3);
+    if (!upcoming.length) {
+      const remarks = [...new Set(rows.map(row => row.rmk_en).filter(Boolean))].join(' · ');
+      showMessage('暂无到站预测', remarks || '城巴暂未提供本站的下一班车时间，页面将继续自动查询。'); return;
+    }
+    $('message').hidden = true;
+    upcoming.forEach((row, index) => {
+      const count = minutes(row.eta, now);
+      const arrival = timeFormat.format(Date.parse(row.eta)) + ' HKT';
+      if (index === 0) {
+        const card = element('div','next','');
+        card.append(element('div','next-label','下一班 / NEXT ARRIVAL'));
+        const eta = element('div','eta','');
+        eta.append(element('span','number',count < 1 ? '<1' : String(count)),element('span','unit','分钟后'));
+        card.append(eta,element('p','details',(count < 1 ? '即将到站，请留意来车' : '预计 ' + arrival + ' 到达富泰邨') + (row.rmk_en ? ' · ' + row.rmk_en : '')));
+        $('arrivals').append(card);
+      } else {
+        const card = element('div','later','');
+        const label = element('div','later-label',index === 1 ? '随后一班 · 02' : '再下一班 · 03');
+        label.append(element('span','later-time',arrival + (row.rmk_en ? ' · ' + row.rmk_en : '')));
+        const eta = element('div','later-eta',count < 1 ? '<1 ' : count + ' '); eta.append(element('small','','分钟'));
+        card.append(label,eta); $('arrivals').append(card);
+      }
+    });
+  }
+  async function refresh() {
+    if (busy) return;
+    busy = true; $('refresh').disabled = true; $('panel').setAttribute('aria-busy','true'); render();
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12_000);
+    try {
+      const response = await fetch(ENDPOINT, { cache:'no-store', signal:controller.signal });
+      if (!response.ok) throw new Error('Citybus HTTP ' + response.status);
+      const payload = await response.json();
+      if (!Array.isArray(payload.data) || !Number.isFinite(Date.parse(payload.generated_timestamp))) throw new Error('Invalid Citybus response');
+      const matching = payload.data.filter(row => row.co === 'CTB' && row.route === 'B3A' && row.dir === 'O' && row.stop === '003261' && Number(row.seq) === 14);
+      const seen = new Set();
+      rows = matching.filter(row => {
+        if (!row.eta) return true; // Preserve service remarks when no ETA is supplied.
+        if (!Number.isFinite(Date.parse(row.eta))) return false;
+        const key = row.eta + '|' + row.dest_en;
+        if (seen.has(key)) return false;
+        seen.add(key); return true;
+      }).sort((a,b) => (Date.parse(a.eta) || Infinity) - (Date.parse(b.eta) || Infinity));
+      receivedAt = Date.now();
+      const timestamps = matching.map(row => Date.parse(row.data_timestamp)).filter(Number.isFinite);
+      sourceAt = Math.min(Date.parse(payload.generated_timestamp), ...(timestamps.length ? timestamps : [Date.parse(payload.generated_timestamp)]));
+      hasData = true; failed = false;
+      const first = rows.find(row => Number.isFinite(Date.parse(row.eta)) && Date.parse(row.eta) >= Date.now()-20_000);
+      $('announcement').textContent = first ? '下一班 B3A 预计 ' + minutes(first.eta, Date.now()) + ' 分钟后到站。' : '暂无 B3A 到站预测。';
+    } catch (error) {
+      failed = true;
+      $('status').textContent = '网络连接异常'; $('status').classList.add('warn');
+      if (!hasData) showMessage('暂时无法获取到站时间', '请检查网络连接。30 秒后会自动重试，也可点击刷新。');
+      $('announcement').textContent = '无法更新城巴到站预测，稍后将自动重试。';
+      console.warn('Citybus arrivals:', error.message);
+    } finally {
+      clearTimeout(timeout); busy = false; nextRefresh = Date.now() + REFRESH_MS;
+      $('refresh').disabled = false; $('panel').setAttribute('aria-busy','false'); render();
+    }
+  }
+  $('refresh').addEventListener('click', refresh);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() >= nextRefresh) refresh(); });
+  window.addEventListener('online', refresh);
+  setInterval(() => { if (!busy && Date.now() >= nextRefresh) refresh(); else render(); },1000);
+  refresh();
+})();
+</script>
+</body>
+</html>
